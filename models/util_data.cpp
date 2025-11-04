@@ -1,7 +1,6 @@
 #include "util_data.h"
 
-#include <array>
-
+// Função pequena para saber se o ano é bissexto.
 bool eBissexto(int ano) {
     if (ano % 400 == 0) {
         return true;
@@ -9,7 +8,7 @@ bool eBissexto(int ano) {
     if (ano % 100 == 0) {
         return false;
     }
-    return ano % 4 == 0;
+    return (ano % 4 == 0);
 }
 
 int diasNoMes(int mes, int ano) {
@@ -28,39 +27,55 @@ int diasNoMes(int mes, int ano) {
         case 11:
             return 30;
         case 2:
-            return eBissexto(ano) ? 29 : 28;
+            if (eBissexto(ano)) {
+                return 29;
+            }
+            return 28;
         default:
-            return 0;
+            return 0; // TODO: tratar meses inválidos melhor
     }
 }
 
 bool eDataValida(int dia, int mes, int ano) {
-    if (ano < 1900 || mes < 1 || mes > 12) {
+    if (ano < 1900) {
         return false;
     }
-    const int limiteDias = diasNoMes(mes, ano);
-    return dia >= 1 && dia <= limiteDias;
+    if (mes < 1 || mes > 12) {
+        return false;
+    }
+    int limiteDias = diasNoMes(mes, ano);
+    return (dia >= 1 && dia <= limiteDias);
 }
 
 int diaDaSemana(int dia, int mes, int ano) {
-    // Congruencia de Zeller ajustada para 0=Domingo.
-    if (mes < 3) {
-        mes += 12;
-        --ano;
+    // Congruência de Zeller versão clássica. 0 = Domingo, 6 = Sábado.
+    int mesConvertido = mes;
+    int anoConvertido = ano;
+    if (mesConvertido < 3) {
+        mesConvertido += 12;
+        anoConvertido -= 1;
     }
-    const int k = ano % 100;
-    const int j = ano / 100;
-    const int h = (dia + (13 * (mes + 1)) / 5 + k + (k / 4) + (j / 4) + (5 * j)) % 7;
-    // Resultado original: 0=Sabado. Ajustamos para 0=Domingo.
-    return (h + 6) % 7;
+
+    int k = anoConvertido % 100;
+    int j = anoConvertido / 100;
+
+    int parte1 = (13 * (mesConvertido + 1)) / 5;
+    int parte2 = k / 4;
+    int parte3 = j / 4;
+    int h = (dia + parte1 + k + parte2 + parte3 + (5 * j)) % 7;
+
+    int resultado = (h + 6) % 7;
+    return resultado;
 }
 
 std::string nomeMes(int mes) {
-    static const std::array<std::string, 12> nomes = {
+    static const char* nomes[12] = {
         "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"};
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    };
+
     if (mes < 1 || mes > 12) {
         return "Mes";
     }
-    return nomes[static_cast<std::size_t>(mes - 1)];
+    return nomes[mes - 1];
 }
